@@ -1,31 +1,42 @@
-#!/usr/bin/env python3
 import numpy as np
+from collections import defaultdict
+from math import inf
 
 if __name__ == "__main__":
-    # Load data distribution, each line containing a datapoint -- a string.
     with open("numpy_entropy_data.txt", "r") as data:
+        distr_data_model = defaultdict(lambda: [0, 0])
+        n = 0
         for line in data:
+            n += 1
             line = line.rstrip("\n")
-            # TODO: Process the line, aggregating data with built-in Python
-            # data structures (not NumPy, which is not suitable for incremental
-            # addition and string mapping).
-
-    # TODO: Create a NumPy array containing the data distribution. The
-    # NumPy array should contain only data, not any mapping. If required,
-    # the NumPy array might be created after loading the model distribution.
-
-    # Load model distribution, each line `string \t probability`.
+            distr_data_model[line][0] += 1
+        if n:
+            for key in distr_data_model:
+                distr_data_model[key][0] /= n
+    
     with open("numpy_entropy_model.txt", "r") as model:
         for line in model:
             line = line.rstrip("\n")
-            # TODO: process the line, aggregating using Python data structures
-
-    # TODO: Create a NumPy array containing the model distribution.
-
-    # TODO: Compute and print the entropy H(data distribution). You should not use
-    # manual for/while cycles, but instead use the fact that most NumPy methods
-    # operate on all elements (for example `*` is vector element-wise multiplication).
+            key, p = line.rstrip("\n").split("\t")
+            p = float(p)
+            distr_data_model[key][1] = p
+    data_list, model_list = [], []
+    for key, val in distr_data_model.items():
+        data_list.append(val[0])
+        model_list.append(val[1])
+        blowup = False
+        if val[0] and not val[1]:
+            blowup = True
+    model_array = np.array(model_list)
+    data_array = np.array(data_list)
+    print(model_array, data_array)
+    print(blowup, distr_data_model) 
+    entropy = -np.sum(data_array * np.ma.log(data_array).filled(0))
+    if blowup:
+        cross_entropy = inf
+    else:
+        cross_entropy = -np.sum(data_array * np.log(model_array))
     print("{:.2f}".format(entropy))
+    print("{:.2f}".format(cross_entropy))
+    print("{:.2f}".format(cross_entropy-entropy))
 
-    # TODO: Compute and print cross-entropy H(data distribution, model distribution)
-    # and KL-divergence D_KL(data distribution, model_distribution)
